@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   livrosIniciais,
   participantesIniciais,
   emprestimosIniciais,
 } from "../../data/mockClube";
 
-// Função auxiliar para somar dias a uma data no formato YYYY-MM-DD
+const STORAGE_KEYS = {
+  LIVROS: "clube_livro_acervo_v1",
+  EMPRESTIMOS: "clube_livro_emprestimos_v1",
+};
+
 function calcularDataDevolucao(dataBase, diasPrazo = 7) {
   if (!dataBase) return "";
   const [ano, mes, dia] = dataBase.split("-").map(Number);
@@ -20,7 +24,6 @@ function calcularDataDevolucao(dataBase, diasPrazo = 7) {
   return `${anoFormatado}-${mesFormatado}-${diaFormatado}`;
 }
 
-// Formata YYYY-MM-DD para o padrão brasileiro DD/MM/AAAA na exibição
 function formatarDataBR(dataISO) {
   if (!dataISO) return "-";
   const [ano, mes, dia] = dataISO.split("-");
@@ -30,12 +33,11 @@ function formatarDataBR(dataISO) {
 export default function RegistroEmprestimo() {
   const hojeISO = new Date().toISOString().split("T")[0];
 
-  // Estados principais do módulo (prontos para serem substituídos por props/contexto na integração)
   const [livros, setLivros] = useState(livrosIniciais);
   const [participantes] = useState(participantesIniciais);
   const [emprestimos, setEmprestimos] = useState(emprestimosIniciais);
+  const [carregado, setCarregado] = useState(false);
 
-  // Estados controlados do formulário
   const [livroSelecionadoId, setLivroSelecionadoId] = useState("");
   const [participanteSelecionadoId, setParticipanteSelecionadoId] = useState("");
   const [dataRetirada, setDataRetirada] = useState(hojeISO);
@@ -45,10 +47,25 @@ export default function RegistroEmprestimo() {
   const [responsavelRegistro, setResponsavelRegistro] = useState("Administrador");
   const [feedback, setFeedback] = useState({ tipo: "", mensagem: "" });
 
-  // Filtra apenas livros disponíveis para retirada (RF 03)
+  // Carrega dados salvos no navegador ao abrir a página
+  useEffect(() => {
+    const livrosSalvos = localStorage.getItem(STORAGE_KEYS.LIVROS);
+    const emprestimosSalvos = localStorage.getItem(STORAGE_KEYS.EMPRESTIMOS);
+
+    if (livrosSalvos) setLivros(JSON.parse(livrosSalvos));
+    if (emprestimosSalvos) setEmprestimos(JSON.parse(emprestimosSalvos));
+    setCarregado(true);
+  }, []);
+
+  // Salva automaticamente sempre que houver novo empréstimo ou mudança no acervo
+  useEffect(() => {
+    if (!carregado) return;
+    localStorage.setItem(STORAGE_KEYS.LIVROS, JSON.stringify(livros));
+    localStorage.setItem(STORAGE_KEYS.EMPRESTIMOS, JSON.stringify(emprestimos));
+  }, [livros, emprestimos, carregado]);
+
   const livrosDisponiveis = livros.filter((livro) => livro.disponivel);
 
-  // Atualiza automaticamente a previsão de devolução quando a data de retirada muda
   function handleMudancaDataRetirada(novaData) {
     setDataRetirada(novaData);
     setDataPrevistaDevolucao(calcularDataDevolucao(novaData, 7));
@@ -58,7 +75,6 @@ export default function RegistroEmprestimo() {
     e.preventDefault();
     setFeedback({ tipo: "", mensagem: "" });
 
-    // Validações de regra de negócio
     if (!livroSelecionadoId || !participanteSelecionadoId) {
       setFeedback({
         tipo: "erro",
@@ -90,7 +106,6 @@ export default function RegistroEmprestimo() {
 
     if (!livroEscolhido || !participanteEscolhido) return;
 
-    // Monta o registro do novo empréstimo (RF 03 e RF 06)
     const novoEmprestimo = {
       id: `emp-${Date.now().toString().slice(-4)}`,
       livroId: livroEscolhido.id,
@@ -103,17 +118,14 @@ export default function RegistroEmprestimo() {
       status: "Ativo",
     };
 
-    // 1. Adiciona o empréstimo no topo do histórico
     setEmprestimos((listaAtual) => [novoEmprestimo, ...listaAtual]);
 
-    // 2. Atualiza a disponibilidade do livro no acervo
     setLivros((acervoAtual) =>
       acervoAtual.map((livro) =>
         livro.id === livroEscolhido.id ? { ...livro, disponivel: false } : livro
       )
     );
 
-    // 3. Limpa os campos de seleção e exibe confirmação clara
     setLivroSelecionadoId("");
     setParticipanteSelecionadoId("");
     setFeedback({
@@ -122,20 +134,41 @@ export default function RegistroEmprestimo() {
     });
   }
 
+  function handleResetarDadosTeste() {
+    localStorage.removeItem(STORAGE_KEYS.LIVROS);
+    localStorage.removeItem(STORAGE_KEYS.EMPRESTIMOS);
+    setLivros(livrosIniciais);
+    setEmprestimos(emprestimosIniciais);
+    setFeedback({
+      tipo: "sucesso",
+      mensagem: "Dados restaurados para o estado inicial de demonstração.",
+    });
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Cartão do Formulário de Registro */}
       <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 md:p-8">
-        <div className="border-b border-slate-100 pb-4 mb-6">
-          <span className="inline-block text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md mb-2">
-            Módulo de Circulação • RF 03 & RF 06
-          </span>
-          <h2 className="text-xl font-bold text-slate-800">
-            Registrar Retirada de Livro
-          </h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Selecione um exemplar disponível no acervo, vincule ao membro do clube e defina o prazo de devolução.
-          </p>
+        <div className="border-b border-slate-100 pb-4 mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <span className="inline-block text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md mb-2">
+              Módulo de Circulação • RF 03 & RF 06
+            </span>
+            <h2 className="text-xl font-bold text-slate-800">
+              Registrar Retirada de Livro
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Selecione um exemplar disponível no acervo, vincule ao membro do clube e defina o prazo de devolução.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleResetarDadosTeste}
+            className="text-xs font-medium text-slate-500 hover:text-slate-800 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            Restaurar dados iniciais
+          </button>
         </div>
 
         {feedback.mensagem && (
@@ -152,7 +185,6 @@ export default function RegistroEmprestimo() {
 
         <form onSubmit={handleRegistrarEmprestimo} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Seleção de Livro Disponível */}
             <div>
               <label
                 htmlFor="livro"
@@ -175,7 +207,6 @@ export default function RegistroEmprestimo() {
               </select>
             </div>
 
-            {/* Seleção de Participante */}
             <div>
               <label
                 htmlFor="participante"
@@ -199,7 +230,6 @@ export default function RegistroEmprestimo() {
             </div>
           </div>
 
-          {/* Controle de Datas e Perfil de Operação */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
               <label
@@ -294,6 +324,7 @@ export default function RegistroEmprestimo() {
                 <th className="py-3 px-6 font-semibold">Participante</th>
                 <th className="py-3 px-6 font-semibold">Retirada</th>
                 <th className="py-3 px-6 font-semibold">Devolução Prevista</th>
+                <th className="py-3 px-6 font-semibold">Responsável</th>
                 <th className="py-3 px-6 font-semibold">Status</th>
               </tr>
             </thead>
@@ -307,6 +338,9 @@ export default function RegistroEmprestimo() {
                   <td className="py-3.5 px-6">{formatarDataBR(item.dataRetirada)}</td>
                   <td className="py-3.5 px-6 font-medium text-indigo-700">
                     {formatarDataBR(item.dataPrevistaDevolucao)}
+                  </td>
+                  <td className="py-3.5 px-6 text-xs text-slate-500">
+                    {item.registradoPor || "Administrador"}
                   </td>
                   <td className="py-3.5 px-6">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">

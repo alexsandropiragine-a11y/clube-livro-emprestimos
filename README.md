@@ -1,36 +1,14 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Clube do Livro — Módulo de Registro de Empréstimos (RF 03 & RF 06)
 
-## Getting Started
+**Responsável pelo módulo:** Alexsandro (`alexsandropiragine-a11y`)  
+**Stack:** Next.js (App Router), React, JavaScript, Tailwind CSS
 
-First, run the development server:
+## Funcionalidades Implementadas
+- **RF 03 (Registro de Empréstimos):** Seleção exclusiva de exemplares disponíveis no acervo, vinculação a participantes cadastrados, registro do perfil responsável pela operação e atualização reativa da disponibilidade.
+- **RF 06 (Controle de Datas):** Preenchimento automático da data de retirada, cálculo padrão de 7 dias corridos para devolução prevista, validação contra datas retroativas e listagem cronológica de retiradas ativas.
+- **Persistência Local:** Armazenamento automático via `localStorage` com opção de restauração para os dados iniciais de demonstração.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Estrutura de Arquivos para Integração (Arthur)
+- `src/app/components/RegistroEmprestimo.jsx`: Componente principal isolado com formulário, validações e tabela de registros.
+- `src/data/mockClube.js`: Estrutura simulada de livros (`RF 01`), participantes (`RF 02`) e empréstimos iniciais, pronta para ser conectada à fonte de dados unificada do grupo.
+- `src/app/page.js`: Página de entrada exibindo o módulo.
