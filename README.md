@@ -1,14 +1,14 @@
-# Clube do Livro — Módulo de Registro de Empréstimos (RF 03 & RF 06)
+# Clube do Livro — Parte de Registro de Empréstimos (RF 03 e RF 06)
 
-**Responsável pelo módulo:** Alexsandro (`alexsandropiragine-a11y`)  
-**Stack:** Next.js (App Router), React, JavaScript, Tailwind CSS
+**Quem fez esta parte:** Alexsandro (`alexsandropiragine-a11y`)  
+**Ferramentas usadas:** Next.js (App Router), React, JavaScript, Tailwind CSS
 
-## Funcionalidades Implementadas
-- **RF 03 (Registro de Empréstimos):** Seleção exclusiva de exemplares disponíveis no acervo, vinculação a participantes cadastrados, registro do perfil responsável pela operação e atualização reativa da disponibilidade.
-- **RF 06 (Controle de Datas):** Preenchimento automático da data de retirada, cálculo padrão de 7 dias corridos para devolução prevista, validação contra datas retroativas e listagem cronológica de retiradas ativas.
-- **Persistência Local:** Armazenamento automático via `localStorage` com opção de restauração para os dados iniciais de demonstração.
+## O que foi feito
+- **RF 03 (Registro de Empréstimos):** Deixa escolher só os livros que estão livres, ligar o livro ao leitor cadastrado, anotar quem fez o empréstimo e mudar na hora a situação do livro para ocupado.
+- **RF 06 (Controle de Datas):** Coloca a data de saída sozinha, conta 7 dias para a data de entrega, não deixa colocar datas antigas e mostra a lista dos empréstimos que estão valendo.
+- **Salvar no Navegador:** Salva tudo sozinho no `localStorage` para não apagar quando atualizar a página, e tem um botão para voltar tudo como era no começo.
 
-## Estrutura de Arquivos para Integração (Arthur)
-- `src/app/components/RegistroEmprestimo.jsx`: Componente principal isolado com formulário, validações e tabela de registros.
-- `src/data/mockClube.js`: Estrutura simulada de livros (`RF 01`), participantes (`RF 02`) e empréstimos iniciais, pronta para ser conectada à fonte de dados unificada do grupo.
-- `src/app/page.js`: Página de entrada exibindo o módulo.
+## Onde está cada arquivo (Para juntar tudo - Marcelo)
+- `src/app/components/RegistroEmprestimo.jsx`: Arquivo principal com a tela de cadastro, as regras de erro e a lista de empréstimos.
+- `src/data/mockClube.js`: Dados de teste dos livros (`RF 01`), leitores (`RF 02`) e empréstimos do começo, prontos para serem trocados pelos dados oficiais do grupo.
+- `src/app/page.js`: Tela inicial que mostra esta parte funcionando.
